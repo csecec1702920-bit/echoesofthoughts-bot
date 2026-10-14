@@ -17,7 +17,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python main.py prepare
-          python -c "import json;p=json.load(open('data/pending.json'));print('SOURCE =', p['source'])"
+          python -c "import json;p=json.load(open('data/pending.json'));print('::notice::SOURCE=' + p['source'] + ' | ' + p['quote'])"
       - uses: actions/upload-artifact@v4
         with:
           name: sample-post
