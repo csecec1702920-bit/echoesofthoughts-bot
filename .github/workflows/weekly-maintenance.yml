@@ -1,0 +1,47 @@
+name: Weekly insights + token refresh
+
+on:
+  schedule:
+    - cron: "23 3 * * 0"        # Sunday 08:53 IST
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # Long-lived Instagram tokens expire after 60 days; refreshing weekly keeps it alive forever.
+      - name: Refresh Instagram token
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}      # fine-grained PAT: this repo, "Secrets: read & write"
+          TOKEN_OUT: ${{ runner.temp }}/tok
+        run: |
+          python main.py refresh-token
+          echo "::add-mask::$(cat "$TOKEN_OUT")"
+          gh secret set IG_ACCESS_TOKEN --repo "${{ github.repository }}" < "$TOKEN_OUT"
+          rm -f "$TOKEN_OUT"
+
+      - name: Weekly insights report
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python main.py insights
+
+      - name: Commit report
+        run: |
+          git config user.name  "quote-bot"
+          git config user.email "quote-bot@users.noreply.github.com"
+          git add reports
+          git diff --cached --quiet || { git commit -m "Weekly report $(date -u +%F)"; git push; }

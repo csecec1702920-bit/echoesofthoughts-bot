@@ -1,0 +1,60 @@
+name: Daily quote post
+
+on:
+  schedule:
+    # 13:47 UTC = 19:17 IST (evening peak for Indian audiences).
+    # GitHub may start scheduled runs a few minutes late; that's fine.
+    # Adjust after a couple of weekly insight reports.
+    - cron: "47 13 * * *"
+  workflow_dispatch: {}          # "Run workflow" button for manual posts
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Generate quote + image
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}          # free
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}    # optional, paid
+        run: python main.py prepare
+
+      - name: Push image so Instagram can fetch it
+        run: |
+          [ -f data/pending.json ] || { echo "Nothing to post"; exit 0; }
+          git config user.name  "quote-bot"
+          git config user.email "quote-bot@users.noreply.github.com"
+          git add posts data
+          git commit -m "Prepare post $(date -u +%F)"
+          git push
+          sleep 20   # give raw.githubusercontent.com a moment
+
+      - name: Publish to Instagram
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          PUBLIC_IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+        run: |
+          [ -f data/pending.json ] || exit 0
+          python main.py publish
+
+      - name: Save history
+        if: always()
+        run: |
+          git add data || true
+          git diff --cached --quiet || { git commit -m "Posted $(date -u +%F)"; git push; }

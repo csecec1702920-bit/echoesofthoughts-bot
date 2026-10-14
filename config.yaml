@@ -1,0 +1,63 @@
+# ---- Page identity ----
+page_handle: "@echoesofthoughs"         # shown small at the bottom of each image
+page_name: "Echoes of Thoughts"
+
+# ---- Quote generation ----
+gemini_model: "gemini-2.5-flash"     # free tier via GEMINI_API_KEY (default)
+claude_model: "claude-sonnet-4-5"    # optional paid alternative via ANTHROPIC_API_KEY
+themes:                               # rotated daily so the feed stays varied
+  - solitude and self-knowledge
+  - time and impermanence
+  - ambition versus contentment
+  - love and attachment
+  - failure and resilience
+  - silence and listening
+  - discipline and freedom
+  - grief and healing
+  - truth and self-deception
+  - growing older
+  - purpose and meaning
+  - fear and courage
+  - simplicity
+  - the ego
+max_quote_words: 28                   # short quotes perform better as images
+
+# ---- Image ----
+image:
+  width: 1080
+  height: 1350                        # 4:5 portrait = most feed real estate
+  background: "#0E0E10"
+  text_color: "#EDE6DA"
+  accent_color: "#B8A27A"
+  muted_color: "#6E6A63"
+
+# ---- Hashtags (a random mix is chosen each day) ----
+hashtags:
+  per_post: 12                        # Instagram allows 30; 8-15 relevant ones works better
+  core:                               # always 3 of these
+    - "#deepthoughts"
+    - "#quotes"
+    - "#philosophy"
+    - "#mindfulness"
+    - "#wisdom"
+  niche:                              # smaller tags = easier to rank in
+    - "#deepquotes"
+    - "#thoughtoftheday"
+    - "#selfreflection"
+    - "#lifelessons"
+    - "#innerpeace"
+    - "#stoicism"
+    - "#existentialism"
+    - "#quietmind"
+    - "#soulfulquotes"
+    - "#wordsofwisdom"
+    - "#introspection"
+    - "#mindsetquotes"
+    - "#poetryofthemind"
+    - "#writersofinstagram"
+    - "#quoteoftheday"
+    - "#thinkdeep"
+    - "#lifephilosophy"
+    - "#selfgrowth"
+    - "#indianwriters"
+    - "#thoughtfulquotes"
