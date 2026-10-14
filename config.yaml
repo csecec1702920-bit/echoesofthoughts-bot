@@ -3,7 +3,7 @@ page_handle: "@echoesofthoughs"         # shown small at the bottom of each imag
 page_name: "Echoes of Thoughts"
 
 # ---- Quote generation ----
-gemini_model: "gemini-2.5-flash"     # free tier via GEMINI_API_KEY (default)
+gemini_model: "gemini-flash-latest"     # free tier via GEMINI_API_KEY (default)
 claude_model: "claude-sonnet-4-5"    # optional paid alternative via ANTHROPIC_API_KEY
 themes:                               # rotated daily so the feed stays varied
   - solitude and self-knowledge

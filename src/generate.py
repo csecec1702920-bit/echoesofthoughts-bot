@@ -90,7 +90,7 @@ def generate(cfg, history):
     previous = "\n".join(f"- {h['quote']}" for h in history[-40:]) or "- (none yet)"
     prompt = PROMPT.format(theme=theme, max_words=cfg["max_quote_words"], previous=previous)
 
-    providers = [("Gemini", _gemini, cfg.get("gemini_model", "gemini-2.5-flash")),
+    providers = [("Gemini", _gemini, cfg.get("gemini_model", "gemini-flash-latest")),
                  ("Claude", _claude, cfg.get("claude_model", "claude-sonnet-4-5"))]
     for name, fn, model in providers:
         for _ in range(3):
