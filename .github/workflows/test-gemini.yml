@@ -1,0 +1,19 @@
+name: Diagnose Gemini key
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Gemini
+        env:
+          K: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "::notice::keylen=${#K} prefix=${K:0:3}"
+          code=$(curl -s -o models.json -w '%{http_code}' -H "x-goog-api-key: $K" https://generativelanguage.googleapis.com/v1beta/models)
+          echo "::notice::models HTTP $code $(head -c 300 models.json | tr '\n' ' ')"
+          echo "::notice::flash models: $(grep -o '"name": "models/gemini[^"]*flash[^"]*"' models.json | head -12 | tr '\n' ' ')"
+          code=$(curl -s -o gen.json -w '%{http_code}' -H "x-goog-api-key: $K" -H 'content-type: application/json' https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent -d '{"contents":[{"parts":[{"text":"Say OK"}]}]}')
+          echo "::notice::generate HTTP $code $(head -c 400 gen.json | tr '\n' ' ')"
