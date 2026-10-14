@@ -60,8 +60,13 @@ def _gemini(prompt, model):
         timeout=60,
     )
     r.raise_for_status()
-    parts = r.json()["candidates"][0]["content"]["parts"]
-    return _parse("".join(p.get("text", "") for p in parts))
+    data = r.json()
+    try:
+        parts = data["candidates"][0]["content"]["parts"]
+    except (KeyError, IndexError):
+        _log(f"Gemini unexpected reply: {str(data)[:300]}")
+        return None
+    return _parse("".join(p.get("text", "") for p in parts if not p.get("thought")))
 
 
 def _claude(prompt, model):
@@ -78,6 +83,11 @@ def _claude(prompt, model):
     )
     r.raise_for_status()
     return _parse("".join(b.get("text", "") for b in r.json()["content"]))
+
+
+def _log(msg):
+    pre = "::warning::" if os.environ.get("GITHUB_ACTIONS") else ""
+    print(f"{pre}[generate] {msg}")
 
 
 def _norm(s):
@@ -97,14 +107,17 @@ def generate(cfg, history):
             try:
                 q = fn(prompt, model)
             except Exception as e:  # quota, network, bad model name...
-                print(f"[generate] {name} failed: {e}")
+                body = getattr(getattr(e, "response", None), "text", "")[:300]
+                _log(f"{name} failed: {e} {body}")
                 q = None
             if q is None:
+                _log(f"{name}: no usable reply")
                 break
             if _norm(q["quote"]) not in seen and len(q["quote"].split()) <= cfg["max_quote_words"] + 4:
                 q["theme"] = theme
                 q["source"] = name
                 return q
+            _log(f"{name}: rejected (duplicate or too long): {q['quote'][:80]}")
 
     bank = json.loads(BANK.read_text())
     unused = [b for b in bank if _norm(b["quote"]) not in seen]
